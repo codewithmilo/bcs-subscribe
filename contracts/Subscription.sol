@@ -6,9 +6,8 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "./SubscriptionInfo.sol";
 import "./SubscriptionManager.sol";
-import "./SubscriptionMessager.sol";
 
-contract Subscription is SubscriptionInfo, SubscriptionManager, SubscriptionMessager {
+contract Subscription is SubscriptionInfo, SubscriptionManager {
 
     // cost of each subscription length
     mapping (uint => uint) public prices;
@@ -29,18 +28,17 @@ contract Subscription is SubscriptionInfo, SubscriptionManager, SubscriptionMess
         prices[DURATION_QUARTER] =_prices[6];
     }
 
-    function getSubInfo(address subscriber) public view returns (SubInfo memory) {
+    // update the price for a given duration
+    function updatePrice(uint duration, uint price) public onlyOwner {
+        prices[duration] = price;
+    }
+
+    function getSubInfo(address subscriber) public view onlyOwner returns (SubInfo memory) {
         return getSub(subscriber);
     }
 
-    function getAllSubscribers() public view returns (address[] memory) {
+    function getAllSubscribers() public view onlyOwner returns (address[] memory) {
         return getSubscribers();
-    }
-
-    function message() public returns (uint) {
-        uint msgId = createMessage();
-        sendMessages(msgId);
-        return msgId;
     }
 
     function subscribe(uint duration) public payable {
@@ -68,13 +66,18 @@ contract Subscription is SubscriptionInfo, SubscriptionManager, SubscriptionMess
     }
 
     // Get the current status, (potentially does an UPDATE)
-    function getUpToDateStatus(address subscriber) public returns (SubStatus) {
+    function getUpToDateStatus(address subscriber) private returns (SubStatus) {
         // first check if it's expired, update if so
         bool isExpired = checkExpiration(subscriber);
         if (isExpired) _expire(subscriber);
 
         // after _expire, this will be up to date
         return getSubStatus(subscriber);
+    }
+
+    // Check if the user is subscribed to the service
+    function isSubscribed(address user) public returns (bool) {
+        return getUpToDateStatus(user) == SubStatus.Active;
     }
 
     function cancel(address subscriber) public { _cancel(subscriber); }

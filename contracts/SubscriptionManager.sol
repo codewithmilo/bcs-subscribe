@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./SubscriptionInfo.sol";
 import "./ASubscriptionManager.sol";
 
@@ -11,7 +12,7 @@ import "./ASubscriptionManager.sol";
 // subscription & duration tokens.
 // - Implements SubscriptionInfo, which defines the token types
 
-abstract contract SubscriptionManager is ERC1155, SubscriptionInfo, ASubscriptionManager {
+abstract contract SubscriptionManager is ERC1155, SubscriptionInfo, ASubscriptionManager, Ownable {
 
     function _subscribe(address subscriber, uint duration) internal override {
         // make sure they don't have a subscription token already
@@ -93,12 +94,12 @@ abstract contract SubscriptionManager is ERC1155, SubscriptionInfo, ASubscriptio
 
     function _cancel(address subscriber) internal override {
         require(balanceOf(subscriber, SUBSCRIPTION) > 0, "Missing subscription");
-        require(msg.sender == address(this) || msg.sender == subscriber, "Not allowed");
+        require(msg.sender == owner() || msg.sender == subscriber, "Not allowed");
 
         // set their status as cancelled
         setSubStatus(subscriber, SubStatus.Cancelled);
 
-        // figure out which duration token they have (just log an error if they don't have it for some reason)
+        // figure out which duration token they have
         uint duration = getSubDuration(subscriber);
 
         // burn their tokens

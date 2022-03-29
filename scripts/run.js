@@ -29,6 +29,26 @@ async function main() {
   // show all subscribers
   let subs = await subscriptionContract.getAllSubscribers();
   console.log("All subscribers:", subs);
+
+  // subscriber has tokens
+  let subTokens = await subscriptionContract.balanceOf(owner.address, 0);
+  console.log("Sub tokens:", subTokens.toString());
+  let durationTokens = await subscriptionContract.balanceOf(owner.address, 1);
+  console.log("Duration tokens:", durationTokens.toString());
+
+  // cancel subscription
+  txn = await subscriptionContract.cancel(owner.address);
+  await txn.wait();
+
+  // show the subscriber
+  info = await subscriptionContract.getSubInfo(owner.address);
+  console.log("Subscriber (cancelled):", info);
+
+  // subscriber has tokens
+  subTokens = await subscriptionContract.balanceOf(owner.address, 0);
+  console.log("Sub tokens:", subTokens.toString());
+  durationTokens = await subscriptionContract.balanceOf(owner.address, 1);
+  console.log("Duration tokens:", durationTokens.toString());
 }
 
 main()

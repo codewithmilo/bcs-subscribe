@@ -7,6 +7,9 @@ import "./SubscriptionInfo.sol";
 
 // The contract for sending messages to subscription holders
 // This works by minting a new token, which represents the message 
+//
+// Overall, this is probably not a good idea, thus isn't included in
+// the main Subscription contract
 
 abstract contract SubscriptionMessager is ERC1155, SubscriptionInfo {
     using Counters for Counters.Counter;
